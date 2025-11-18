@@ -24,21 +24,21 @@ export const portfolioData = {
       title: "AI-Powered Teaching IDE",
       description: "A full-stack online code editor with a multi-agent AI system that generates context-aware code and explains concepts in real-time. Features secure cloud-based execution and streaming APIs for a smooth learning experience.",
       technologies: ["React", "TypeScript", "Python", "FastAPI", "Agno", "E2B", "Supabase", "Tailwind"],
-      link: "https://github.com/alemanb",
+      link: "https://github.com/alemanb/tutor",
       image: "/project1.jpg"
     },
     {
       title: "DummyStocks",
       description: "An interactive financial literacy platform that combines dynamic data visualization with AI-powered article simplification. Makes stock market trends and financial news actually understandable.",
       technologies: ["TypeScript", "React", "Python", "Flask", "OpenAI", "pandas"],
-      link: "https://github.com/alemanb",
+      link: "https://github.com/kqwang123/DummyStocks",
       image: "/project2.jpg"
     },
     {
       title: "CV-Theremin",
       description: "A music application that turns hand gestures into sound waves. Uses OpenCV for real-time hand tracking and JUCE to generate dynamic sine waves with pitch and velocity controlled by hand motion.",
       technologies: ["C++", "JUCE", "OpenCV"],
-      link: "https://github.com/alemanb",
+      link: "https://github.com/kqwang123/cv-theremin",
       image: "/project3.jpg"
     }
   ],
