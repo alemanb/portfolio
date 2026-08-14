@@ -7,8 +7,14 @@ import { useEffect, useState } from "react";
  */
 export type IntroPhase = "travel" | "expand" | "ready";
 
-/** How long the orb spends crossing the screen. */
-export const INTRO_TRAVEL_MS = 640;
+/**
+ * How long the orb spends crossing the screen.
+ *
+ * Longer than the 650ms travel itself. The morph that follows is a `layout`
+ * animation, and the travel is a transform on the element wrapping it, so the
+ * transform needs to have settled before the projection starts measuring.
+ */
+export const INTRO_TRAVEL_MS = 720;
 /**
  * How long the orb takes to become the window.
  *

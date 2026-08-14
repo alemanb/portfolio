@@ -12,6 +12,13 @@ import type { Transition, Variants } from "motion/react";
 /** Decelerating curve used for anything entering the screen. */
 export const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
+/**
+ * Gentle acceleration into a long, slow settle. For something crossing the
+ * whole viewport, where a pure ease-out would have it already at full speed on
+ * the first frame it becomes visible.
+ */
+export const EASE_IN_OUT = [0.45, 0, 0.25, 1] as const;
+
 /** Physics for the sliding tab indicator. Snappy, no overshoot wobble. */
 export const INDICATOR_SPRING: Transition = {
   type: "spring",

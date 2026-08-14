@@ -1,5 +1,12 @@
 import { motion, useSpring, useTransform, type MotionValue } from "motion/react";
-import { useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { bootItem, INDICATOR_SPRING } from "../../lib/motion";
 import { cn } from "../../lib/utils";
 import type { TabDefinition } from "../../tabs";
@@ -175,6 +182,23 @@ export function TabRail({ tabs, activeIndex, onSelect }: TabRailProps) {
     height: useSpring(0, INDICATOR_SPRING),
   };
 
+  const applyPill = useCallback(
+    (rect: Rect, mode: "set" | "jump") => {
+      pill.x[mode](rect.left);
+      pill.y[mode](rect.top);
+      pill.width[mode](rect.width);
+      pill.height[mode](rect.height);
+    },
+    [pill.x, pill.y, pill.width, pill.height],
+  );
+
+  // Read inside `measure` without making the observer re-subscribe on every
+  // tab change, which would turn selection moves into jumps.
+  const activeIndexRef = useRef(activeIndex);
+  useEffect(() => {
+    activeIndexRef.current = activeIndex;
+  }, [activeIndex]);
+
   // Measured from the DOM rather than derived from the index, so it holds for
   // both orientations and any label length.
   useLayoutEffect(() => {
@@ -198,6 +222,18 @@ export function TabRail({ tabs, activeIndex, onSelect }: TabRailProps) {
         });
       }
 
+      // Placed from this same measurement, before the state update that mounts
+      // the indicator. Motion applies motion value changes on the next frame
+      // rather than synchronously, so an indicator mounted while its springs
+      // still read 0 paints once as a zero-sized box in the corner. Setting
+      // them first means its very first paint already has real geometry.
+      //
+      // `jump` because this path is initial placement and layout changes
+      // (resize, breakpoint flip), which should place the indicator rather than
+      // fly it across the rail.
+      const rect = next[activeIndexRef.current];
+      if (rect) applyPill(rect, "jump");
+
       setRects((prev) => (sameRects(prev, next) ? prev : next));
     };
 
@@ -207,28 +243,14 @@ export function TabRail({ tabs, activeIndex, onSelect }: TabRailProps) {
     const observer = new ResizeObserver(measure);
     observer.observe(list);
     return () => observer.disconnect();
-  }, [tabs]);
+  }, [tabs, applyPill]);
 
-  const placedRef = useRef(false);
-  const lastIndexRef = useRef(activeIndex);
-
+  // Selection changes animate. On mount this is a no-op: `rects` is still
+  // empty, and once it fills the springs are already at these values.
   useLayoutEffect(() => {
     const rect = rects[activeIndex];
-    if (!rect) return;
-
-    // Animate only when the selection moved. First paint and layout changes
-    // (resize, breakpoint flip) should place the indicator, not fly it there.
-    const selectionMoved = lastIndexRef.current !== activeIndex;
-    lastIndexRef.current = activeIndex;
-
-    const apply = selectionMoved && placedRef.current ? "set" : "jump";
-    placedRef.current = true;
-
-    pill.x[apply](rect.left);
-    pill.y[apply](rect.top);
-    pill.width[apply](rect.width);
-    pill.height[apply](rect.height);
-  }, [rects, activeIndex, pill.x, pill.y, pill.width, pill.height]);
+    if (rect) applyPill(rect, "set");
+  }, [rects, activeIndex, applyPill]);
 
   const moveTo = (index: number) => {
     onSelect(index);

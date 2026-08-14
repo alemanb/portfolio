@@ -1,7 +1,12 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import type { IntroPhase } from "../../hooks/useIntroSequence";
-import { bootContainer, bootItem, EASE_OUT } from "../../lib/motion";
+import {
+  bootContainer,
+  bootItem,
+  EASE_IN_OUT,
+  EASE_OUT,
+} from "../../lib/motion";
 import { cn } from "../../lib/utils";
 
 interface BrowserFrameProps {
@@ -44,13 +49,14 @@ export function BrowserFrame({ path, phase, children }: BrowserFrameProps) {
       {/* The travel lives on this wrapper, the morph on the frame inside it.
           Keeping the transform off the `layout` element avoids Motion having to
           reconcile an animating transform against a box measurement. */}
+      {/* Starts fully past the right edge rather than fading in on screen:
+          the orb is centred, so 62vw of travel puts its centre at ~112vw and
+          the page's `overflow-hidden` keeps it out of sight until it enters.
+          No opacity fade, since arriving from outside is the entrance. */}
       <motion.div
-        initial={{ x: "45vw", opacity: 0 }}
-        animate={{ x: "0vw", opacity: 1 }}
-        transition={{
-          x: { duration: 0.55, ease: EASE_OUT },
-          opacity: { duration: 0.3 },
-        }}
+        initial={{ x: "62vw" }}
+        animate={{ x: "0vw" }}
+        transition={{ duration: 0.65, ease: EASE_IN_OUT }}
         className="flex h-full w-full items-center justify-center"
       >
         <motion.div
