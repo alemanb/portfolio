@@ -1,57 +1,131 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Design tokens (Tailwind v4 CSS-first config).
+   Every value here becomes both a utility (bg-surface, text-muted, ...) and a
+   plain CSS variable (var(--color-surface)), so there is exactly one place to
+   change the palette.
+--------------------------------------------------------------------------- */
 @theme {
-  --color-background: 0 0% 100%;
-  --color-foreground: 222.2 84% 4.9%;
-  --color-card: 0 0% 100%;
-  --color-card-foreground: 222.2 84% 4.9%;
-  --color-popover: 0 0% 100%;
-  --color-popover-foreground: 222.2 84% 4.9%;
-  --color-primary: 222.2 47.4% 11.2%;
-  --color-primary-foreground: 210 40% 98%;
-  --color-secondary: 210 40% 96.1%;
-  --color-secondary-foreground: 222.2 47.4% 11.2%;
-  --color-muted: 210 40% 96.1%;
-  --color-muted-foreground: 215.4 16.3% 46.9%;
-  --color-accent: 210 40% 96.1%;
-  --color-accent-foreground: 222.2 47.4% 11.2%;
-  --color-destructive: 0 84.2% 60.2%;
-  --color-destructive-foreground: 210 40% 98%;
-  --color-border: 214.3 31.8% 91.4%;
-  --color-input: 214.3 31.8% 91.4%;
-  --color-ring: 222.2 84% 4.9%;
-  --radius: 0.5rem;
+  /* Two families, nothing else. Noto Sans carries everything, Montserrat the
+     large headings. Small labels get their character from size, tracking, and
+     case rather than from a third typeface. */
+  --font-sans: "Noto Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  --font-display: "Montserrat", "Noto Sans", ui-sans-serif, system-ui,
+    sans-serif;
 
-  --animate-ripple: ripple 2s ease-out infinite;
+  /* Surfaces, darkest to lightest */
+  --color-void: #060708;
+  --color-rail: #0a0b0d;
+  --color-surface: #0d0f12;
+  --color-raised: #15181c;
 
-  @keyframes ripple {
-    0%, 100% {
-      transform: translate(-50%, -50%) scale(1);
-    }
-    50% {
-      transform: translate(-50%, -50%) scale(0.9);
-    }
+  /* Hairlines */
+  --color-line: #1b1f24;
+  --color-line-strong: #2b3037;
+
+  /* Type */
+  --color-ink: #e8eaed;
+  --color-muted: #9aa0a6;
+  --color-faint: #5f6368;
+
+  /* Accent */
+  --color-accent: #8ab4f8;
+  --color-accent-dim: #35507d;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Spacing rhythm
+   ---------------------------------------------------------------------------
+   Tailwind v4 derives every spacing utility from a single `--spacing` base, so
+   rather than inventing named utilities the layout sticks to four steps. Gaps
+   between things always come from this list, which is what makes groups read as
+   groups:
+
+     2  (8px)   inside one item      icon to label, tag to tag
+     4  (16px)  between siblings     paragraphs, cards in a list
+     8  (32px)  between groups       one block of content to the next
+     12 (48px)  between regions      panel header to body, content to footer
+
+   Two things sit outside the scale on purpose. Inline gaps (an icon to its
+   label, a kicker to its title) use 2 or 3, since they separate parts of one
+   line rather than blocks. Box padding is its own fixed set: p-5 for cards,
+   p-6 / md:p-12 for the panel itself.
+--------------------------------------------------------------------------- */
+
+@layer base {
+  html {
+    color-scheme: dark;
+    /* The rail/panel own all scrolling; the page itself never scrolls. */
+    overflow: hidden;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "calt", "liga";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-accent) 28%, transparent);
+    color: var(--color-ink);
+  }
+
+  /* Keyboard focus only, so pointer clicks stay clean. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Tailwind v4 ships buttons with `cursor: default` to match the browser
+     default. Restore the pointer so anything clickable reads as clickable. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }
 
-* {
-  border-color: hsl(var(--color-border));
+@layer utilities {
+  /* Very low-contrast grid, used behind the app frame. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.028) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.028) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
+/* Scroll without a visible track. Both rules are needed: `scrollbar-width` is
+   the standard property, the pseudo-element covers WebKit.
+
+   Named `scrollbar-hidden` rather than `scrollbar-none` on purpose. Tailwind
+   ships first-party scrollbar utilities from v4.3 and this project is on 4.1,
+   so keeping the name distinct means upgrading later cannot collide with a
+   built-in of the same name. */
+@utility scrollbar-hidden {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-body {
-  background-color: hsl(var(--color-background));
-  color: hsl(var(--color-foreground));
-  font-feature-settings: "rlig" 1, "calt" 1;
-}
-
-#root {
-  width: 100%;
-  min-height: 100vh;
+/* Respect the OS setting globally; Motion is handled separately via
+   useReducedMotion() so component logic stays declarative. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
